@@ -304,7 +304,7 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
                 className={`w-full py-2 px-4 rounded-lg font-semibold text-sm transition-colors flex items-center justify-center gap-2 ${
                   isStarted
                     ? 'bg-red-500 text-white hover:bg-red-600 disabled:bg-red-400'
-                    : 'bg-neutral-900 text-white hover:bg-neutral-800 disabled:bg-neutral-700'
+                    : 'bg-[#059669] text-white hover:bg-white hover:text-black disabled:bg-[#059669]/70'
                 }`}
               >
                 {isActionLoading ? (
@@ -355,7 +355,7 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
             className={`w-full py-2 px-4 rounded-lg font-semibold text-sm transition-colors flex items-center justify-center gap-2 ${
               isStarted
                 ? 'bg-red-500 text-white hover:bg-red-600 disabled:bg-red-400'
-                : 'bg-neutral-900 text-white hover:bg-neutral-800 disabled:bg-neutral-700'
+                : 'bg-[#059669] text-white hover:bg-white hover:text-black disabled:bg-[#059669]/70'
             }`}
           >
             {isActionLoading ? (
