@@ -39,7 +39,7 @@ function MenuLinks(props: { orgslug: string; primaryColor?: string }) {
 
   return (
     <div className='pl-1'>
-      <ul className="flex space-x-5">
+      <ul className="flex space-x-6">
         {isCoursesEnabled && (
           <LinkItem
             link="/courses"
@@ -110,7 +110,7 @@ const LinkItem = (props: any) => {
   const textColorClass = colors.text
   return (
     <Link href={getUriWithOrg(orgslug, link)}>
-      <li className={`flex space-x-2 items-center ${textColorClass} font-semibold`}>
+      <li className={`flex space-x-2 items-center ${textColorClass} font-semibold hover:text-[#059669] transition-colors`}>
         {props.type == 'courses' && (
           <>
             <Books size={20} weight="fill" />{' '}

@@ -1,0 +1,1236 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model activity {
+  name                     String                     @db.VarChar
+  activity_type            activitytypeenum
+  activity_sub_type        activitysubtypeenum
+  content                  Json?                      @db.Json
+  details                  Json?                      @db.Json
+  published                Boolean
+  id                       Int                        @id @default(autoincrement())
+  org_id                   Int?
+  course_id                Int?
+  activity_uuid            String                     @db.VarChar
+  creation_date            String                     @db.VarChar
+  update_date              String                     @db.VarChar
+  current_version          Int
+  last_modified_by_id      Int?
+  course                   course?                    @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user                     user?                      @relation(fields: [last_modified_by_id], references: [id], onUpdate: NoAction)
+  organization             organization?              @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  activityversion          activityversion[]
+  assignment               assignment[]
+  assignmenttask           assignmenttask[]
+  assignmenttasksubmission assignmenttasksubmission[]
+  block                    block[]
+  chapteractivity          chapteractivity[]
+  course_embedding         course_embedding[]
+  scormpackage             scormpackage[]
+  scormruntimedata         scormruntimedata[]
+  trailstep                trailstep[]
+
+  @@index([activity_uuid], map: "ix_activity_activity_uuid")
+  @@index([course_id], map: "ix_activity_course_id")
+}
+
+model activityversion {
+  content        Json?         @db.Json
+  version_number Int
+  created_by_id  Int?
+  id             Int           @id @default(autoincrement())
+  activity_id    Int?
+  org_id         Int?
+  created_at     DateTime?     @db.Timestamp(6)
+  activity       activity?     @relation(fields: [activity_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user           user?         @relation(fields: [created_by_id], references: [id], onUpdate: NoAction)
+  organization   organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model apitoken {
+  name               String       @db.VarChar(100)
+  description        String?      @db.VarChar(500)
+  rights             Json?        @db.Json
+  id                 Int          @id @default(autoincrement())
+  token_uuid         String       @db.VarChar(100)
+  token_prefix       String       @db.VarChar(12)
+  token_hash         String?      @db.VarChar(64)
+  org_id             Int
+  created_by_user_id Int
+  creation_date      String       @db.VarChar
+  update_date        String       @db.VarChar
+  last_used_at       String?      @db.VarChar
+  expires_at         String?      @db.VarChar
+  is_active          Boolean
+  user               user         @relation(fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  organization       organization @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([org_id], map: "ix_apitoken_org_id")
+  @@index([token_hash], map: "ix_apitoken_token_hash")
+}
+
+model assignment {
+  title                    String                     @db.VarChar
+  description              String                     @db.VarChar
+  due_date                 String                     @db.VarChar
+  published                Boolean?
+  grading_type             gradingtypeenum
+  id                       Int                        @id @default(autoincrement())
+  creation_date            String?                    @db.VarChar
+  update_date              String?                    @db.VarChar
+  assignment_uuid          String                     @db.VarChar
+  org_id                   Int?
+  course_id                Int?
+  chapter_id               Int?
+  activity_id              Int?
+  activity                 activity?                  @relation(fields: [activity_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  chapter                  chapter?                   @relation(fields: [chapter_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  course                   course?                    @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization             organization?              @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  assignmenttask           assignmenttask[]
+  assignmentusersubmission assignmentusersubmission[]
+}
+
+model assignmenttask {
+  title                    String                     @db.VarChar
+  description              String                     @db.VarChar
+  hint                     String                     @db.VarChar
+  reference_file           String?                    @db.VarChar
+  assignment_type          assignmenttasktypeenum
+  contents                 Json?                      @db.Json
+  max_grade_value          Int
+  id                       Int                        @id @default(autoincrement())
+  assignment_task_uuid     String                     @db.VarChar
+  creation_date            String                     @db.VarChar
+  update_date              String                     @db.VarChar
+  assignment_id            Int?
+  org_id                   Int?
+  course_id                Int?
+  chapter_id               Int?
+  activity_id              Int?
+  activity                 activity?                  @relation(fields: [activity_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  assignment               assignment?                @relation(fields: [assignment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  chapter                  chapter?                   @relation(fields: [chapter_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  course                   course?                    @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization             organization?              @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  assignmenttasksubmission assignmenttasksubmission[]
+}
+
+model assignmenttasksubmission {
+  assignment_task_submission_uuid String                 @db.VarChar
+  task_submission                 Json?                  @db.Json
+  grade                           Int
+  task_submission_grade_feedback  String                 @db.VarChar
+  assignment_type                 assignmenttasktypeenum
+  user_id                         Int?
+  activity_id                     Int?
+  course_id                       Int?
+  chapter_id                      Int?
+  assignment_task_id              Int?
+  id                              Int                    @id @default(autoincrement())
+  creation_date                   String                 @db.VarChar
+  update_date                     String                 @db.VarChar
+  activity                        activity?              @relation(fields: [activity_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  assignmenttask                  assignmenttask?        @relation(fields: [assignment_task_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  chapter                         chapter?               @relation(fields: [chapter_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  course                          course?                @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user                            user?                  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model assignmentusersubmission {
+  id                            Int                            @id @default(autoincrement())
+  creation_date                 String                         @db.VarChar
+  update_date                   String                         @db.VarChar
+  assignmentusersubmission_uuid String                         @db.VarChar
+  submission_status             assignmentusersubmissionstatus
+  grade                         Int
+  user_id                       Int?
+  assignment_id                 Int?
+  assignment                    assignment?                    @relation(fields: [assignment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user                          user?                          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model auditlog {
+  user_id      Int?
+  org_id       Int?
+  action       String        @db.VarChar
+  resource     String        @db.VarChar
+  resource_id  String?       @db.VarChar
+  method       String        @db.VarChar
+  path         String        @db.VarChar
+  status_code  Int
+  payload      Json?         @db.Json
+  ip_address   String?       @db.VarChar
+  created_at   DateTime      @db.Timestamp(6)
+  id           Int           @id @default(autoincrement())
+  organization organization? @relation(fields: [org_id], references: [id], onUpdate: NoAction)
+  user         user?         @relation(fields: [user_id], references: [id], onUpdate: NoAction)
+}
+
+model block {
+  id            Int           @id @default(autoincrement())
+  block_type    blocktypeenum
+  content       Json?         @db.Json
+  org_id        Int?
+  course_id     Int?
+  chapter_id    Int?
+  activity_id   Int?
+  block_uuid    String        @db.VarChar
+  creation_date String        @db.VarChar
+  update_date   String        @db.VarChar
+  activity      activity?     @relation(fields: [activity_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  chapter       chapter?      @relation(fields: [chapter_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  course        course?       @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization  organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model board {
+  name            String        @db.VarChar
+  description     String?       @db.VarChar
+  thumbnail_image String?       @db.VarChar
+  public          Boolean
+  id              Int           @id @default(autoincrement())
+  org_id          Int?
+  board_uuid      String        @db.VarChar
+  created_by      Int?
+  ydoc_state      Bytes?
+  creation_date   String        @db.VarChar
+  update_date     String        @db.VarChar
+  user            user?         @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  organization    organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  boardmember     boardmember[]
+
+  @@index([board_uuid], map: "ix_board_board_uuid")
+  @@index([org_id], map: "ix_board_org_id")
+}
+
+model boardmember {
+  id            Int    @id @default(autoincrement())
+  board_id      Int?
+  user_id       Int?
+  role          String @db.VarChar
+  creation_date String @db.VarChar
+  board         board? @relation(fields: [board_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user          user?  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([board_id], map: "ix_boardmember_board_id")
+  @@index([user_id], map: "ix_boardmember_user_id")
+}
+
+model certificateuser {
+  user_id                 Int?
+  certification_id        Int?
+  user_certification_uuid String          @db.VarChar
+  id                      Int             @id @default(autoincrement())
+  created_at              String          @db.VarChar
+  updated_at              String          @db.VarChar
+  certifications          certifications? @relation(fields: [certification_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user                    user?           @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model certifications {
+  id                 Int               @id @default(autoincrement())
+  certification_uuid String            @unique @db.VarChar
+  course_id          Int?
+  config             Json?             @db.Json
+  creation_date      String            @db.VarChar
+  update_date        String            @db.VarChar
+  certificateuser    certificateuser[]
+  course             course?           @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model chapter {
+  name                     String                     @db.VarChar
+  description              String?                    @db.VarChar
+  thumbnail_image          String?                    @db.VarChar
+  org_id                   Int?
+  course_id                Int?
+  id                       Int                        @id @default(autoincrement())
+  chapter_uuid             String                     @db.VarChar
+  creation_date            String                     @db.VarChar
+  update_date              String                     @db.VarChar
+  assignment               assignment[]
+  assignmenttask           assignmenttask[]
+  assignmenttasksubmission assignmenttasksubmission[]
+  block                    block[]
+  course                   course?                    @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization             organization?              @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  chapteractivity          chapteractivity[]
+  coursechapter            coursechapter[]
+}
+
+model chapteractivity {
+  id            Int           @id @default(autoincrement())
+  order         Int
+  chapter_id    BigInt?
+  activity_id   BigInt?
+  course_id     BigInt?
+  org_id        Int?
+  creation_date String        @db.VarChar
+  update_date   String        @db.VarChar
+  activity      activity?     @relation(fields: [activity_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  chapter       chapter?      @relation(fields: [chapter_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  course        course?       @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization  organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([chapter_id], map: "ix_chapteractivity_chapter_id")
+  @@index([course_id], map: "ix_chapteractivity_course_id")
+}
+
+model collection {
+  name             String             @db.VarChar
+  public           Boolean
+  description      String?            @db.VarChar
+  id               Int                @id @default(autoincrement())
+  org_id           BigInt?
+  collection_uuid  String             @db.VarChar
+  creation_date    String             @db.VarChar
+  update_date      String             @db.VarChar
+  organization     organization?      @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  collectioncourse collectioncourse[]
+}
+
+model collectioncourse {
+  id            Int           @id @default(autoincrement())
+  collection_id Int?
+  course_id     Int?
+  org_id        Int?
+  creation_date String        @db.VarChar
+  update_date   String        @db.VarChar
+  collection    collection?   @relation(fields: [collection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  course        course?       @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization  organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model community {
+  name             String        @db.VarChar
+  description      String?
+  public           Boolean
+  thumbnail_image  String?       @db.VarChar
+  id               Int           @id @default(autoincrement())
+  org_id           Int?
+  course_id        Int?
+  community_uuid   String        @db.VarChar
+  moderation_words Json?         @db.Json
+  creation_date    String        @db.VarChar
+  update_date      String        @db.VarChar
+  course           course?       @relation(fields: [course_id], references: [id], onUpdate: NoAction)
+  organization     organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  discussion       discussion[]
+}
+
+model course {
+  name                     String                     @db.VarChar
+  description              String?                    @db.VarChar
+  about                    String?                    @db.VarChar
+  learnings                String?                    @db.VarChar
+  tags                     String?                    @db.VarChar
+  thumbnail_type           thumbnailtype?
+  thumbnail_image          String?                    @db.VarChar
+  thumbnail_video          String?                    @db.VarChar
+  public                   Boolean
+  published                Boolean
+  open_to_contributors     Boolean
+  id                       Int                        @id @default(autoincrement())
+  org_id                   Int?
+  course_uuid              String                     @db.VarChar
+  creation_date            String                     @db.VarChar
+  update_date              String                     @db.VarChar
+  seo                      Json?
+  activity                 activity[]
+  assignment               assignment[]
+  assignmenttask           assignmenttask[]
+  assignmenttasksubmission assignmenttasksubmission[]
+  block                    block[]
+  certifications           certifications[]
+  chapter                  chapter[]
+  chapteractivity          chapteractivity[]
+  collectioncourse         collectioncourse[]
+  community                community[]
+  organization             organization?              @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  course_embedding         course_embedding[]
+  coursechapter            coursechapter[]
+  courseupdate             courseupdate[]
+  paymentscourse           paymentscourse[]
+  playground               playground[]
+  scormpackage             scormpackage[]
+  trailrun                 trailrun[]
+  trailstep                trailstep[]
+
+  @@index([course_uuid], map: "ix_course_course_uuid")
+  @@index([org_id], map: "ix_course_org_id")
+}
+
+model course_embedding {
+  id            Int                    @id @default(autoincrement())
+  org_id        Int?
+  course_id     Int?
+  activity_id   Int?
+  activity_uuid String                 @db.VarChar
+  block_uuid    String?                @db.VarChar
+  source_type   String                 @db.VarChar
+  chunk_text    String?
+  chunk_index   Int
+  activity_name String                 @db.VarChar
+  chapter_name  String                 @db.VarChar
+  course_name   String                 @db.VarChar
+  embedding     Unsupported("vector")?
+  creation_date String                 @db.VarChar
+  update_date   String                 @db.VarChar
+  activity      activity?              @relation(fields: [activity_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  course        course?                @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization  organization?          @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([course_id], map: "ix_course_embedding_course_id")
+  @@index([org_id], map: "ix_course_embedding_org_id")
+}
+
+model coursechapter {
+  id            Int           @id @default(autoincrement())
+  order         Int
+  course_id     Int?
+  chapter_id    Int?
+  org_id        Int?
+  creation_date String        @db.VarChar
+  update_date   String        @db.VarChar
+  chapter       chapter?      @relation(fields: [chapter_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  course        course?       @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization  organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([chapter_id], map: "ix_coursechapter_chapter_id")
+  @@index([course_id], map: "ix_coursechapter_course_id")
+}
+
+model courseupdate {
+  id                    Int           @id @default(autoincrement())
+  courseupdate_uuid     String        @db.VarChar
+  title                 String        @db.VarChar
+  content               String        @db.VarChar
+  course_id             Int?
+  linked_activity_uuids String?       @db.VarChar
+  org_id                Int?
+  creation_date         String        @db.VarChar
+  update_date           String        @db.VarChar
+  course                course?       @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization          organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model customdomain {
+  primary            Boolean
+  id                 Int          @id @default(autoincrement())
+  domain_uuid        String       @unique(map: "ix_customdomain_domain_uuid") @db.VarChar(100)
+  domain             String       @unique @db.VarChar(255)
+  org_id             BigInt
+  status             String       @db.VarChar(50)
+  verification_token String       @db.VarChar(100)
+  creation_date      String       @db.VarChar
+  update_date        String       @db.VarChar
+  verified_at        String?      @db.VarChar
+  last_check_at      String?      @db.VarChar
+  check_error        String?      @db.VarChar
+  organization       organization @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([org_id], map: "ix_customdomain_org_id")
+}
+
+model discussion {
+  title              String               @db.VarChar
+  content            String?
+  label              String?              @db.VarChar(50)
+  emoji              String?              @db.VarChar(50)
+  id                 Int                  @id @default(autoincrement())
+  community_id       Int?
+  org_id             Int?
+  author_id          Int?
+  discussion_uuid    String               @db.VarChar
+  upvote_count       Int
+  edit_count         Int
+  is_pinned          Boolean?
+  is_locked          Boolean?
+  creation_date      String               @db.VarChar
+  update_date        String               @db.VarChar
+  user               user?                @relation(fields: [author_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  community          community?           @relation(fields: [community_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization       organization?        @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  discussioncomment  discussioncomment[]
+  discussionreaction discussionreaction[]
+  discussionvote     discussionvote[]
+}
+
+model discussioncomment {
+  content               String?
+  id                    Int                     @id @default(autoincrement())
+  discussion_id         Int?
+  author_id             Int?
+  comment_uuid          String                  @db.VarChar
+  upvote_count          Int
+  creation_date         String                  @db.VarChar
+  update_date           String                  @db.VarChar
+  user                  user?                   @relation(fields: [author_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  discussion            discussion?             @relation(fields: [discussion_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  discussioncommentvote discussioncommentvote[]
+}
+
+model discussioncommentvote {
+  id                Int                @id @default(autoincrement())
+  comment_id        Int?
+  user_id           Int?
+  vote_uuid         String             @db.VarChar
+  creation_date     String             @db.VarChar
+  discussioncomment discussioncomment? @relation(fields: [comment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user              user?              @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([comment_id, user_id], map: "unique_comment_user_vote")
+}
+
+model discussionreaction {
+  id            Int         @id @default(autoincrement())
+  discussion_id Int?
+  user_id       Int?
+  emoji         String?     @db.VarChar(50)
+  reaction_uuid String      @db.VarChar
+  creation_date String      @db.VarChar
+  discussion    discussion? @relation(fields: [discussion_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user          user?       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([discussion_id, user_id, emoji], map: "unique_discussion_user_emoji")
+}
+
+model discussionvote {
+  id            Int         @id @default(autoincrement())
+  discussion_id Int?
+  user_id       Int?
+  vote_uuid     String      @db.VarChar
+  creation_date String      @db.VarChar
+  discussion    discussion? @relation(fields: [discussion_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user          user?       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([discussion_id, user_id], map: "unique_discussion_user_vote")
+}
+
+model docgroup {
+  name          String           @db.VarChar
+  description   String?          @db.VarChar
+  icon          String?          @db.VarChar
+  group_type    docgrouptypeenum
+  order         Int
+  id            Int              @id @default(autoincrement())
+  org_id        Int?
+  docspace_id   Int?
+  docsection_id Int?
+  docgroup_uuid String           @db.VarChar
+  api_config    Json?
+  creation_date String           @db.VarChar
+  update_date   String           @db.VarChar
+  docsection    docsection?      @relation(fields: [docsection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  docspace      docspace?        @relation(fields: [docspace_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization  organization?    @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  docpage       docpage[]
+
+  @@index([docgroup_uuid], map: "ix_docgroup_docgroup_uuid")
+  @@index([docsection_id], map: "ix_docgroup_docsection_id")
+  @@index([docspace_id], map: "ix_docgroup_docspace_id")
+  @@index([org_id], map: "ix_docgroup_org_id")
+}
+
+model docpage {
+  name           String          @db.VarChar
+  page_type      docpagetypeenum
+  icon           String?         @db.VarChar
+  published      Boolean
+  order          Int
+  id             Int             @id @default(autoincrement())
+  org_id         Int?
+  docspace_id    Int?
+  docsection_id  Int?
+  docgroup_id    Int?
+  parent_page_id Int?
+  docpage_uuid   String          @db.VarChar
+  slug           String          @db.VarChar
+  content        Json?
+  creation_date  String          @db.VarChar
+  update_date    String          @db.VarChar
+  docgroup       docgroup?       @relation(fields: [docgroup_id], references: [id], onUpdate: NoAction)
+  docsection     docsection?     @relation(fields: [docsection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  docspace       docspace?       @relation(fields: [docspace_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization   organization?   @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  docpage        docpage?        @relation("docpageTodocpage", fields: [parent_page_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  other_docpage  docpage[]       @relation("docpageTodocpage")
+
+  @@index([docgroup_id], map: "ix_docpage_docgroup_id")
+  @@index([docpage_uuid], map: "ix_docpage_docpage_uuid")
+  @@index([docsection_id], map: "ix_docpage_docsection_id")
+  @@index([docspace_id], map: "ix_docpage_docspace_id")
+  @@index([org_id], map: "ix_docpage_org_id")
+  @@index([parent_page_id], map: "ix_docpage_parent_page_id")
+}
+
+model docsection {
+  name            String        @db.VarChar
+  description     String?       @db.VarChar
+  icon            String?       @db.VarChar
+  published       Boolean
+  order           Int
+  id              Int           @id @default(autoincrement())
+  org_id          Int?
+  docspace_id     Int?
+  docsection_uuid String        @db.VarChar
+  slug            String        @db.VarChar
+  creation_date   String        @db.VarChar
+  update_date     String        @db.VarChar
+  docgroup        docgroup[]
+  docpage         docpage[]
+  docspace        docspace?     @relation(fields: [docspace_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization    organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([docsection_uuid], map: "ix_docsection_docsection_uuid")
+  @@index([docspace_id], map: "ix_docsection_docspace_id")
+  @@index([org_id], map: "ix_docsection_org_id")
+}
+
+model docspace {
+  name            String        @db.VarChar
+  description     String?       @db.VarChar
+  thumbnail_image String?       @db.VarChar
+  public          Boolean
+  published       Boolean
+  id              Int           @id @default(autoincrement())
+  org_id          Int?
+  docspace_uuid   String        @db.VarChar
+  is_default      Boolean
+  slug            String        @db.VarChar
+  creation_date   String        @db.VarChar
+  update_date     String        @db.VarChar
+  seo             Json?
+  nav_config      Json?
+  docgroup        docgroup[]
+  docpage         docpage[]
+  docsection      docsection[]
+  organization    organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([docspace_uuid], map: "ix_docspace_docspace_uuid")
+  @@index([org_id], map: "ix_docspace_org_id")
+}
+
+model organization {
+  name               String               @db.VarChar
+  description        String?              @db.VarChar
+  about              String?              @db.VarChar
+  socials            Json?                @db.Json
+  links              Json?                @db.Json
+  scripts            Json?                @db.Json
+  logo_image         String?              @db.VarChar
+  thumbnail_image    String?              @db.VarChar
+  previews           Json?                @db.Json
+  explore            Boolean?
+  label              String?              @db.VarChar
+  email              String               @db.VarChar
+  id                 Int                  @id @default(autoincrement())
+  org_uuid           String               @unique @db.VarChar
+  slug               String               @unique(map: "ix_organization_slug") @db.VarChar
+  creation_date      String               @db.VarChar
+  update_date        String               @db.VarChar
+  activity           activity[]
+  activityversion    activityversion[]
+  apitoken           apitoken[]
+  assignment         assignment[]
+  assignmenttask     assignmenttask[]
+  auditlog           auditlog[]
+  block              block[]
+  board              board[]
+  chapter            chapter[]
+  chapteractivity    chapteractivity[]
+  collection         collection[]
+  collectioncourse   collectioncourse[]
+  community          community[]
+  course             course[]
+  course_embedding   course_embedding[]
+  coursechapter      coursechapter[]
+  courseupdate       courseupdate[]
+  customdomain       customdomain[]
+  discussion         discussion[]
+  docgroup           docgroup[]
+  docpage            docpage[]
+  docsection         docsection[]
+  docspace           docspace[]
+  organizationconfig organizationconfig[]
+  paymentsconfig     paymentsconfig[]
+  paymentscourse     paymentscourse[]
+  paymentsproduct    paymentsproduct[]
+  paymentsuser       paymentsuser[]
+  playground         playground[]
+  podcast            podcast[]
+  podcastepisode     podcastepisode[]
+  role               role[]
+  scormpackage       scormpackage[]
+  scormruntimedata   scormruntimedata[]
+  ssoconnection      ssoconnection[]
+  trail              trail[]
+  trailrun           trailrun[]
+  trailstep          trailstep[]
+  usageevent         usageevent[]
+  usergroup          usergroup[]
+  usergroupresource  usergroupresource[]
+  usergroupuser      usergroupuser[]
+  userorganization   userorganization[]
+}
+
+model organizationconfig {
+  id            Int           @id @default(autoincrement())
+  org_id        BigInt?
+  config        Json?         @db.Json
+  creation_date String?       @db.VarChar
+  update_date   String?       @db.VarChar
+  organization  organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model paymentsconfig {
+  enabled              Boolean
+  active               Boolean
+  provider             paymentproviderenum
+  provider_specific_id String?             @db.VarChar
+  provider_config      Json?               @db.Json
+  id                   Int                 @id @default(autoincrement())
+  org_id               BigInt?
+  creation_date        DateTime            @db.Timestamp(6)
+  update_date          DateTime            @db.Timestamp(6)
+  organization         organization?       @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  paymentsproduct      paymentsproduct[]
+}
+
+model paymentscourse {
+  course_id          BigInt?
+  id                 Int              @id @default(autoincrement())
+  payment_product_id BigInt?
+  org_id             BigInt?
+  creation_date      DateTime         @db.Timestamp(6)
+  update_date        DateTime         @db.Timestamp(6)
+  course             course?          @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization       organization?    @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  paymentsproduct    paymentsproduct? @relation(fields: [payment_product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model paymentsproduct {
+  name                String                 @db.VarChar
+  description         String?                @db.VarChar
+  product_type        paymentproducttypeenum
+  price_type          paymentpricetypeenum
+  benefits            String                 @db.VarChar
+  amount              Float
+  currency            String                 @db.VarChar
+  id                  Int                    @id @default(autoincrement())
+  org_id              BigInt?
+  payments_config_id  BigInt?
+  provider_product_id String?                @db.VarChar
+  creation_date       DateTime               @db.Timestamp(6)
+  update_date         DateTime               @db.Timestamp(6)
+  paymentscourse      paymentscourse[]
+  organization        organization?          @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  paymentsconfig      paymentsconfig?        @relation(fields: [payments_config_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  paymentsuser        paymentsuser[]
+}
+
+model paymentsuser {
+  status                 paymentstatusenum
+  provider_specific_data Json?             @db.Json
+  id                     Int               @id @default(autoincrement())
+  user_id                BigInt?
+  org_id                 BigInt?
+  payment_product_id     BigInt?
+  creation_date          DateTime          @db.Timestamp(6)
+  update_date            DateTime          @db.Timestamp(6)
+  organization           organization?     @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  paymentsproduct        paymentsproduct?  @relation(fields: [payment_product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user                   user?             @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model playground {
+  name               String               @db.VarChar
+  description        String?              @db.VarChar
+  thumbnail_image    String?              @db.VarChar
+  access_type        playgroundaccesstype
+  published          Boolean
+  course_uuid        String?              @db.VarChar
+  html_content       String?
+  id                 Int                  @id @default(autoincrement())
+  org_id             Int?
+  playground_uuid    String               @db.VarChar
+  course_id          Int?
+  created_by         Int?
+  creation_date      String               @db.VarChar
+  update_date        String               @db.VarChar
+  course             course?              @relation(fields: [course_id], references: [id], onUpdate: NoAction)
+  user               user?                @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  organization       organization?        @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  playgroundreaction playgroundreaction[]
+
+  @@index([org_id], map: "ix_playground_org_id")
+  @@index([playground_uuid], map: "ix_playground_playground_uuid")
+}
+
+model playgroundreaction {
+  id            Int         @id @default(autoincrement())
+  playground_id Int?
+  user_id       Int?
+  emoji         String?     @db.VarChar(50)
+  reaction_uuid String      @db.VarChar
+  creation_date String      @db.VarChar
+  playground    playground? @relation(fields: [playground_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user          user?       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([playground_id, user_id, emoji], map: "unique_playground_user_emoji")
+}
+
+model podcast {
+  name            String           @db.VarChar
+  description     String?          @db.VarChar
+  about           String?          @db.VarChar
+  tags            String?          @db.VarChar
+  thumbnail_image String?          @db.VarChar
+  public          Boolean
+  published       Boolean
+  id              Int              @id @default(autoincrement())
+  org_id          Int?
+  podcast_uuid    String           @db.VarChar
+  creation_date   String           @db.VarChar
+  update_date     String           @db.VarChar
+  seo             Json?
+  organization    organization?    @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  podcastepisode  podcastepisode[]
+}
+
+model podcastepisode {
+  title            String        @db.VarChar
+  description      String?       @db.VarChar
+  audio_file       String?       @db.VarChar
+  duration_seconds Int?
+  episode_number   Int?
+  thumbnail_image  String?       @db.VarChar
+  published        Boolean
+  order            Int
+  id               Int           @id @default(autoincrement())
+  podcast_id       Int?
+  org_id           Int?
+  episode_uuid     String        @db.VarChar
+  creation_date    String        @db.VarChar
+  update_date      String        @db.VarChar
+  organization     organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  podcast          podcast?      @relation(fields: [podcast_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model resourceauthor {
+  id                Int                          @id @default(autoincrement())
+  resource_uuid     String                       @db.VarChar
+  user_id           Int?
+  authorship        resourceauthorshipenum
+  authorship_status resourceauthorshipstatusenum
+  creation_date     String                       @db.VarChar
+  update_date       String                       @db.VarChar
+  user              user?                        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([resource_uuid], map: "ix_resourceauthor_resource_uuid")
+  @@index([resource_uuid, user_id], map: "ix_resourceauthor_resource_uuid_user_id")
+  @@index([user_id], map: "ix_resourceauthor_user_id")
+}
+
+model role {
+  name             String             @db.VarChar
+  description      String?            @db.VarChar
+  rights           Json?              @db.Json
+  id               Int                @id @default(autoincrement())
+  org_id           Int?
+  role_type        roletypeenum
+  role_uuid        String             @db.VarChar
+  creation_date    String             @db.VarChar
+  update_date      String             @db.VarChar
+  organization     organization?      @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  ssoconnection    ssoconnection[]
+  userorganization userorganization[]
+
+  @@index([org_id], map: "ix_role_org_id")
+}
+
+model scormpackage {
+  scorm_version scormversionenum
+  manifest_data Json?            @db.Json
+  entry_point   String           @db.VarChar
+  title         String           @db.VarChar
+  identifier    String           @db.VarChar
+  id            Int              @id @default(autoincrement())
+  activity_id   Int?
+  org_id        Int?
+  course_id     Int?
+  package_uuid  String           @db.VarChar
+  creation_date String           @db.VarChar
+  update_date   String           @db.VarChar
+  activity      activity?        @relation(fields: [activity_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  course        course?          @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization  organization?    @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model scormruntimedata {
+  completion_status completionstatusenum
+  success_status    successstatusenum
+  score_raw         Float?
+  score_min         Float?
+  score_max         Float?
+  score_scaled      Float?
+  total_time        String               @db.VarChar
+  session_time      String               @db.VarChar
+  location          String?              @db.VarChar
+  suspend_data      String?
+  cmi_data          Json?                @db.Json
+  id                Int                  @id @default(autoincrement())
+  user_id           Int?
+  activity_id       Int?
+  org_id            Int?
+  runtime_uuid      String               @db.VarChar
+  creation_date     String               @db.VarChar
+  update_date       String               @db.VarChar
+  activity          activity?            @relation(fields: [activity_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization      organization?        @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user              user?                @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model ssoconnection {
+  provider             String        @db.VarChar
+  enabled              Boolean
+  domains              Json?         @db.Json
+  auto_provision_users Boolean
+  provider_config      Json?         @db.Json
+  id                   Int           @id @default(autoincrement())
+  org_id               Int?
+  default_role_id      Int?
+  created_at           DateTime      @db.Timestamp(6)
+  updated_at           DateTime      @db.Timestamp(6)
+  role                 role?         @relation(fields: [default_role_id], references: [id], onUpdate: NoAction)
+  organization         organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model trail {
+  org_id        Int?
+  user_id       Int?
+  id            Int           @id @default(autoincrement())
+  trail_uuid    String        @db.VarChar
+  creation_date String        @db.VarChar
+  update_date   String        @db.VarChar
+  organization  organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user          user?         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  trailrun      trailrun[]
+  trailstep     trailstep[]
+
+  @@index([org_id], map: "ix_trail_org_id")
+  @@index([user_id], map: "ix_trail_user_id")
+}
+
+model trailrun {
+  id            Int           @id @default(autoincrement())
+  data          Json?         @db.Json
+  status        statusenum
+  trail_id      Int?
+  course_id     Int?
+  org_id        Int?
+  user_id       Int?
+  creation_date String        @db.VarChar
+  update_date   String        @db.VarChar
+  course        course?       @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization  organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  trail         trail?        @relation(fields: [trail_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user          user?         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  trailstep     trailstep[]
+
+  @@index([course_id], map: "ix_trailrun_course_id")
+  @@index([trail_id], map: "ix_trailrun_trail_id")
+  @@index([user_id], map: "ix_trailrun_user_id")
+}
+
+model trailstep {
+  id               Int           @id @default(autoincrement())
+  complete         Boolean
+  teacher_verified Boolean
+  grade            String        @db.VarChar
+  data             Json?         @db.Json
+  trailrun_id      Int?
+  trail_id         Int?
+  activity_id      Int?
+  course_id        Int?
+  org_id           Int?
+  user_id          Int?
+  creation_date    String        @db.VarChar
+  update_date      String        @db.VarChar
+  activity         activity?     @relation(fields: [activity_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  course           course?       @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization     organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  trail            trail?        @relation(fields: [trail_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  trailrun         trailrun?     @relation(fields: [trailrun_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user             user?         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([course_id], map: "ix_trailstep_course_id")
+  @@index([trailrun_id], map: "ix_trailstep_trailrun_id")
+  @@index([user_id], map: "ix_trailstep_user_id")
+}
+
+model usageevent {
+  id           Int           @id @default(autoincrement())
+  org_id       BigInt?
+  feature      String        @db.VarChar
+  event_type   String        @db.VarChar
+  timestamp    DateTime      @db.Timestamp(6)
+  usage_after  Int
+  organization organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([org_id, feature, timestamp], map: "ix_usage_event_org_feature_ts")
+}
+
+model user {
+  username                 String                     @db.VarChar
+  first_name               String                     @db.VarChar
+  last_name                String                     @db.VarChar
+  email                    String                     @db.VarChar
+  avatar_image             String?                    @db.VarChar
+  bio                      String?                    @db.VarChar
+  details                  Json?                      @db.Json
+  profile                  Json?                      @db.Json
+  id                       Int                        @id @default(autoincrement())
+  password                 String                     @db.VarChar
+  user_uuid                String                     @db.VarChar
+  email_verified           Boolean
+  email_verified_at        String?                    @db.VarChar
+  failed_login_attempts    Int
+  locked_until             String?                    @db.VarChar
+  last_login_at            String?                    @db.VarChar
+  last_login_ip            String?                    @db.VarChar
+  signup_method            String?                    @db.VarChar
+  is_superadmin            Boolean
+  creation_date            String                     @db.VarChar
+  update_date              String                     @db.VarChar
+  activity                 activity[]
+  activityversion          activityversion[]
+  apitoken                 apitoken[]
+  assignmenttasksubmission assignmenttasksubmission[]
+  assignmentusersubmission assignmentusersubmission[]
+  auditlog                 auditlog[]
+  board                    board[]
+  boardmember              boardmember[]
+  certificateuser          certificateuser[]
+  discussion               discussion[]
+  discussioncomment        discussioncomment[]
+  discussioncommentvote    discussioncommentvote[]
+  discussionreaction       discussionreaction[]
+  discussionvote           discussionvote[]
+  paymentsuser             paymentsuser[]
+  playground               playground[]
+  playgroundreaction       playgroundreaction[]
+  resourceauthor           resourceauthor[]
+  scormruntimedata         scormruntimedata[]
+  trail                    trail[]
+  trailrun                 trailrun[]
+  trailstep                trailstep[]
+  usergroupuser            usergroupuser[]
+  userorganization         userorganization[]
+
+  @@index([email], map: "ix_user_email")
+  @@index([user_uuid], map: "ix_user_user_uuid")
+}
+
+model usergroup {
+  name              String              @db.VarChar
+  description       String              @db.VarChar
+  id                Int                 @id @default(autoincrement())
+  org_id            Int?
+  usergroup_uuid    String              @db.VarChar
+  creation_date     String              @db.VarChar
+  update_date       String              @db.VarChar
+  organization      organization?       @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usergroupresource usergroupresource[]
+  usergroupuser     usergroupuser[]
+}
+
+model usergroupresource {
+  id            Int           @id @default(autoincrement())
+  usergroup_id  Int?
+  resource_uuid String        @db.VarChar
+  org_id        Int?
+  creation_date String        @db.VarChar
+  update_date   String        @db.VarChar
+  organization  organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usergroup     usergroup?    @relation(fields: [usergroup_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model usergroupuser {
+  id            Int           @id @default(autoincrement())
+  usergroup_id  Int?
+  user_id       Int?
+  org_id        Int?
+  creation_date String        @db.VarChar
+  update_date   String        @db.VarChar
+  organization  organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user          user?         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usergroup     usergroup?    @relation(fields: [usergroup_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model userorganization {
+  id            Int           @id @default(autoincrement())
+  user_id       Int
+  org_id        Int?
+  role_id       Int
+  creation_date String        @db.VarChar
+  update_date   String        @db.VarChar
+  organization  organization? @relation(fields: [org_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  role          role          @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user          user          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([org_id], map: "ix_userorganization_org_id")
+  @@index([user_id], map: "ix_userorganization_user_id")
+}
+
+enum activitysubtypeenum {
+  SUBTYPE_DYNAMIC_PAGE
+  SUBTYPE_VIDEO_YOUTUBE
+  SUBTYPE_VIDEO_HOSTED
+  SUBTYPE_DOCUMENT_PDF
+  SUBTYPE_DOCUMENT_DOC
+  SUBTYPE_ASSIGNMENT_ANY
+  SUBTYPE_CUSTOM
+  SUBTYPE_SCORM_12
+  SUBTYPE_SCORM_2004
+}
+
+enum activitytypeenum {
+  TYPE_VIDEO
+  TYPE_DOCUMENT
+  TYPE_DYNAMIC
+  TYPE_ASSIGNMENT
+  TYPE_CUSTOM
+  TYPE_SCORM
+}
+
+enum assignmenttasktypeenum {
+  FILE_SUBMISSION
+  QUIZ
+  FORM
+  OTHER
+}
+
+enum assignmentusersubmissionstatus {
+  PENDING
+  SUBMITTED
+  GRADED
+  LATE
+  NOT_SUBMITTED
+}
+
+enum blocktypeenum {
+  BLOCK_QUIZ
+  BLOCK_VIDEO
+  BLOCK_DOCUMENT_PDF
+  BLOCK_IMAGE
+  BLOCK_AUDIO
+  BLOCK_CUSTOM
+}
+
+enum completionstatusenum {
+  NOT_ATTEMPTED
+  INCOMPLETE
+  COMPLETED
+  PASSED
+  FAILED
+}
+
+enum docgrouptypeenum {
+  STANDARD
+  API_REFERENCE
+}
+
+enum docpagetypeenum {
+  MARKDOWN
+  COURSE_ACTIVITY
+  LINK
+  EMBED
+  NOCODE
+  COMMUNITY
+}
+
+enum gradingtypeenum {
+  ALPHABET
+  NUMERIC
+  PERCENTAGE
+}
+
+enum paymentpricetypeenum {
+  CUSTOMER_CHOICE
+  FIXED_PRICE
+}
+
+enum paymentproducttypeenum {
+  SUBSCRIPTION
+  ONE_TIME
+}
+
+enum paymentproviderenum {
+  STRIPE
+}
+
+enum paymentstatusenum {
+  PENDING
+  COMPLETED
+  ACTIVE
+  CANCELLED
+  FAILED
+  REFUNDED
+}
+
+enum playgroundaccesstype {
+  PUBLIC
+  AUTHENTICATED
+  RESTRICTED
+}
+
+enum resourceauthorshipenum {
+  CREATOR
+  CONTRIBUTOR
+  MAINTAINER
+  REPORTER
+}
+
+enum resourceauthorshipstatusenum {
+  ACTIVE
+  PENDING
+  INACTIVE
+}
+
+enum roletypeenum {
+  TYPE_ORGANIZATION
+  TYPE_ORGANIZATION_API_TOKEN
+  TYPE_GLOBAL
+}
+
+enum scormversionenum {
+  SCORM_12
+  SCORM_2004
+}
+
+enum statusenum {
+  STATUS_IN_PROGRESS
+  STATUS_COMPLETED
+  STATUS_PAUSED
+  STATUS_CANCELLED
+}
+
+enum successstatusenum {
+  PASSED
+  FAILED
+  UNKNOWN
+}
+
+enum thumbnailtype {
+  IMAGE
+  VIDEO
+  BOTH
+}

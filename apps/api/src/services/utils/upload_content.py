@@ -1,3 +1,130 @@
+# import logging
+# from typing import Literal, Optional
+# import boto3
+# from botocore.exceptions import ClientError
+# import os
+# from fastapi import HTTPException, UploadFile
+# from config.config import get_learnhouse_config
+# from src.security.file_validation import validate_upload
+
+# logger = logging.getLogger(__name__)
+
+
+# def ensure_directory_exists(directory: str):
+#     if not os.path.exists(directory):
+#         os.makedirs(directory)
+
+
+# async def upload_file(
+#     file: UploadFile,
+#     directory: str,
+#     type_of_dir: Literal["orgs", "users"],
+#     uuid: str,
+#     allowed_types: list[str],
+#     filename_prefix: str,
+#     max_size: Optional[int] = None,
+# ) -> str:
+#     """
+#     Secure file upload with validation.
+    
+#     Args:
+#         file: The uploaded file
+#         directory: Target directory (e.g., "logos", "avatars")
+#         type_of_dir: "orgs" or "users"
+#         uuid: Organization or user UUID
+#         allowed_types: List of allowed file types ('image', 'video', 'document')
+#         filename_prefix: Prefix for the generated filename
+#         max_size: Maximum file size in bytes (optional)
+        
+#     Returns:
+#         The saved filename
+#     """
+#     from uuid import uuid4
+#     from src.security.file_validation import get_safe_filename
+    
+#     # Validate the file
+#     _, content = validate_upload(file, allowed_types, max_size)
+    
+#     # Generate safe filename
+#     filename = get_safe_filename(file.filename, f"{uuid4()}_{filename_prefix}")
+    
+#     # Save the file
+#     await upload_content(
+#         directory=directory,
+#         type_of_dir=type_of_dir,
+#         uuid=uuid,
+#         file_binary=content,
+#         file_and_format=filename,
+#         allowed_formats=None,  # Already validated
+#     )
+    
+#     return filename
+
+
+# async def upload_content(
+#     directory: str,
+#     type_of_dir: Literal["orgs", "users"],
+#     uuid: str,  # org_uuid or user_uuid
+#     file_binary: bytes,
+#     file_and_format: str,
+#     allowed_formats: Optional[list[str]] = None,
+# ):
+#     # Get Learnhouse Config
+#     learnhouse_config = get_learnhouse_config()
+
+#     file_format = file_and_format.split(".")[-1].strip().lower()
+
+#     # Get content delivery method
+#     content_delivery = learnhouse_config.hosting_config.content_delivery.type
+
+#     # Check if format file is allowed
+#     if allowed_formats:
+#         if file_format not in allowed_formats:
+#             raise HTTPException(
+#                 status_code=400,
+#                 detail=f"File format {file_format} not allowed",
+#             )
+
+#     ensure_directory_exists(f"content/{type_of_dir}/{uuid}/{directory}")
+
+#     if content_delivery == "filesystem":
+#         # upload file to server
+#         with open(
+#             f"content/{type_of_dir}/{uuid}/{directory}/{file_and_format}",
+#             "wb",
+#         ) as f:
+#             f.write(file_binary)
+#             f.close()
+
+#     elif content_delivery == "s3api":
+#         s3 = boto3.client(
+#             "s3",
+#             endpoint_url=learnhouse_config.hosting_config.content_delivery.s3api.endpoint_url,
+#         )
+
+#         bucket_name = learnhouse_config.hosting_config.content_delivery.s3api.bucket_name or "learnhouse-media"
+#         local_path = f"content/{type_of_dir}/{uuid}/{directory}/{file_and_format}"
+#         s3_key = local_path
+
+#         # Write to local temp file for S3 upload
+#         with open(local_path, "wb") as f:
+#             f.write(file_binary)
+
+#         try:
+#             s3.upload_file(local_path, bucket_name, s3_key)
+#             s3.head_object(Bucket=bucket_name, Key=s3_key)
+#             logger.debug("S3 upload successful: %s", s3_key)
+#         except ClientError as e:
+#             logger.error("S3 upload failed: %s", e)
+#             raise HTTPException(status_code=500, detail="File upload to storage failed")
+#         finally:
+#             # Clean up local temp file after S3 upload
+#             try:
+#                 os.remove(local_path)
+#             except OSError:
+#                 pass
+
+
 import logging
 from typing import Literal, Optional
 import boto3
@@ -5,7 +132,6 @@ from botocore.exceptions import ClientError
 import os
 from fastapi import HTTPException, UploadFile
 from config.config import get_learnhouse_config
-from src.security.file_validation import validate_upload
 
 logger = logging.getLogger(__name__)
 
@@ -25,101 +151,97 @@ async def upload_file(
     max_size: Optional[int] = None,
 ) -> str:
     """
-    Secure file upload with validation.
-    
-    Args:
-        file: The uploaded file
-        directory: Target directory (e.g., "logos", "avatars")
-        type_of_dir: "orgs" or "users"
-        uuid: Organization or user UUID
-        allowed_types: List of allowed file types ('image', 'video', 'document')
-        filename_prefix: Prefix for the generated filename
-        max_size: Maximum file size in bytes (optional)
-        
-    Returns:
-        The saved filename
+    Streaming upload supporting very large files.
     """
+
     from uuid import uuid4
-    from src.security.file_validation import get_safe_filename
-    
-    # Validate the file
-    _, content = validate_upload(file, allowed_types, max_size)
-    
-    # Generate safe filename
+    from src.security.file_validation import get_safe_filename, validate_upload
+
+    # ✅ Secure validation (header only — safe for large files)
+    validate_upload(file, allowed_types, max_size)
+
+    # Generate filename
     filename = get_safe_filename(file.filename, f"{uuid4()}_{filename_prefix}")
-    
-    # Save the file
-    await upload_content(
+
+    # Save using streaming
+    await upload_content_stream(
         directory=directory,
         type_of_dir=type_of_dir,
         uuid=uuid,
-        file_binary=content,
+        upload_file=file,
         file_and_format=filename,
-        allowed_formats=None,  # Already validated
     )
-    
+
     return filename
 
 
-async def upload_content(
+async def upload_content_stream(
     directory: str,
     type_of_dir: Literal["orgs", "users"],
-    uuid: str,  # org_uuid or user_uuid
-    file_binary: bytes,
+    uuid: str,
+    upload_file: UploadFile,
     file_and_format: str,
-    allowed_formats: Optional[list[str]] = None,
 ):
-    # Get Learnhouse Config
+    """
+    Stream file to filesystem or S3 without loading into memory.
+    """
+
     learnhouse_config = get_learnhouse_config()
 
-    file_format = file_and_format.split(".")[-1].strip().lower()
-
-    # Get content delivery method
     content_delivery = learnhouse_config.hosting_config.content_delivery.type
 
-    # Check if format file is allowed
-    if allowed_formats:
-        if file_format not in allowed_formats:
-            raise HTTPException(
-                status_code=400,
-                detail=f"File format {file_format} not allowed",
-            )
+    base_path = f"content/{type_of_dir}/{uuid}/{directory}"
+    ensure_directory_exists(base_path)
 
-    ensure_directory_exists(f"content/{type_of_dir}/{uuid}/{directory}")
+    file_path = f"{base_path}/{file_and_format}"
 
+    # ========================
+    # FILESYSTEM STORAGE
+    # ========================
     if content_delivery == "filesystem":
-        # upload file to server
-        with open(
-            f"content/{type_of_dir}/{uuid}/{directory}/{file_and_format}",
-            "wb",
-        ) as f:
-            f.write(file_binary)
-            f.close()
 
+        chunk_size = 1024 * 1024  # 1MB chunks
+
+        try:
+            with open(file_path, "wb") as buffer:
+                while True:
+                    chunk = await upload_file.read(chunk_size)
+                    if not chunk:
+                        break
+                    buffer.write(chunk)
+
+        finally:
+            await upload_file.seek(0)
+
+    # ========================
+    # S3 STORAGE (STREAM DIRECT)
+    # ========================
     elif content_delivery == "s3api":
+
         s3 = boto3.client(
             "s3",
             endpoint_url=learnhouse_config.hosting_config.content_delivery.s3api.endpoint_url,
         )
 
-        bucket_name = learnhouse_config.hosting_config.content_delivery.s3api.bucket_name or "learnhouse-media"
-        local_path = f"content/{type_of_dir}/{uuid}/{directory}/{file_and_format}"
-        s3_key = local_path
+        bucket_name = (
+            learnhouse_config.hosting_config.content_delivery.s3api.bucket_name
+            or "learnhouse-media"
+        )
 
-        # Write to local temp file for S3 upload
-        with open(local_path, "wb") as f:
-            f.write(file_binary)
+        s3_key = file_path
 
         try:
-            s3.upload_file(local_path, bucket_name, s3_key)
+            # ✅ Direct streaming upload (NO temp file, supports huge files)
+            upload_file.file.seek(0)
+            s3.upload_fileobj(upload_file.file, bucket_name, s3_key)
+
             s3.head_object(Bucket=bucket_name, Key=s3_key)
+
             logger.debug("S3 upload successful: %s", s3_key)
+
         except ClientError as e:
             logger.error("S3 upload failed: %s", e)
-            raise HTTPException(status_code=500, detail="File upload to storage failed")
-        finally:
-            # Clean up local temp file after S3 upload
-            try:
-                os.remove(local_path)
-            except OSError:
-                pass
+            raise HTTPException(
+                status_code=500,
+                detail="File upload to storage failed",
+            )

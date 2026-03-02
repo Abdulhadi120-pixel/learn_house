@@ -426,13 +426,13 @@ const CopilotMenuButton = ({
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
               <button
-                className="relative p-2 rounded-lg transition-colors hover:bg-violet-500/10"
+                className="group relative p-2 rounded-lg transition-colors hover:bg-#0f172a"
                 aria-label="Copilot"
               >
-                <ChatCircle size={20} weight="fill" className="text-violet-500" />
+                <ChatCircle size={20} weight="fill" className="text-black group-hover:text-[#059669] transition-colors" />
                 {/* Active indicator dot */}
                 {isBubbleMode && bubbleOpen && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-violet-500 ring-2 ring-white dark:ring-neutral-900" />
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-#0f172a ring-2 ring-white dark:ring-neutral-900" />
                 )}
               </button>
             </DropdownMenuTrigger>
@@ -445,7 +445,7 @@ const CopilotMenuButton = ({
 
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel className="flex items-center gap-2">
-          <ChatCircle size={16} weight="fill" className="text-violet-500" />
+          <ChatCircle size={16} weight="fill" className="text-black" />
           <span>Copilot</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -485,13 +485,13 @@ const CopilotMenuButton = ({
             onSelect={() => onOpenBubble()}
             className="flex items-center gap-2 font-medium cursor-pointer"
           >
-            <ChatCircle size={14} weight="fill" className="text-violet-500" />
+              <ChatCircle size={14} weight="fill" className="text-black" />
             <span>{recentSessions.length > 0 ? 'New conversation' : 'Start a conversation'}</span>
           </DropdownMenuItem>
         ) : (
           <DropdownMenuItem asChild>
             <Link href={getUriWithOrg(orgslug, '/copilot')} className="flex items-center gap-2 font-medium">
-              <ChatCircle size={14} weight="fill" className="text-violet-500" />
+              <ChatCircle size={14} weight="fill" className="text-black" />
               <span>{recentSessions.length > 0 ? 'View all conversations' : 'Start a conversation'}</span>
             </Link>
           </DropdownMenuItem>
@@ -527,11 +527,11 @@ const CopilotMenuButton = ({
 const LearnHouseLogo = ({ logoFilter }: { logoFilter: string }) => {
   return (
     <Image
-      src="/lrn-text.svg"
+      src="https://tony-martingetti-website.netlify.app/assets/tm_logo-qgE9JHb8.svg"
       alt="LearnHouse logo"
       width={133}
-      height={40}
-      style={{ height: 'auto', filter: logoFilter }}
+      height={30}
+      style={{ height: '50px', filter: logoFilter }}
     />
   )
 }

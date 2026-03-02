@@ -134,71 +134,139 @@ FILE_TYPES = {
 }
 
 
+# def validate_upload(
+#     file: UploadFile,
+#     allowed_types: List[str],
+#     max_size: Optional[int] = None
+# ) -> Tuple[str, bytes]:
+#     """
+#     Validate uploaded file for security and type compliance.
+    
+#     Args:
+#         file: The uploaded file
+#         allowed_types: List of allowed file types ('image', 'video', 'document')
+#         max_size: Maximum file size in bytes (auto-determined if None)
+        
+#     Returns:
+#         Tuple of (mime_type, file_content)
+        
+#     Raises:
+#         HTTPException: If validation fails
+#     """
+#     if not file or not file.filename:
+#         raise HTTPException(status_code=400, detail="No file provided")
+    
+#     # Read file content once
+#     content = file.file.read()
+#     file.file.seek(0)
+    
+#     # Get file extension and block SVG explicitly
+#     ext = '.' + file.filename.split('.')[-1].lower()
+#     if ext == '.svg':
+#         raise HTTPException(status_code=415, detail="SVG files are not allowed for security reasons")
+    
+#     # Find matching file type configuration
+#     config = None
+#     for file_type in allowed_types:
+#         if file_type in FILE_TYPES and ext in FILE_TYPES[file_type]['extensions']:
+#             config = FILE_TYPES[file_type]
+#             break
+    
+#     if not config:
+#         allowed_exts = [ext for t in allowed_types for ext in FILE_TYPES.get(t, {}).get('extensions', [])]
+#         raise HTTPException(status_code=415, detail=f"File type not allowed. Allowed: {allowed_exts}")
+    
+#     # Check file size (skip if no limit set)
+#     size_limit = max_size or config.get('max_size')
+#     if size_limit and len(content) > size_limit:
+#         raise HTTPException(
+#             status_code=413,
+#             detail=f"File too large ({len(content)/1024/1024:.1f}MB > {size_limit/1024/1024:.1f}MB)"
+#         )
+    
+#     # Validate file content
+#     if not config['validator'](content):
+#         raise HTTPException(status_code=415, detail="File appears to be corrupted or invalid")
+    
+#     return file.content_type, content
+
+
+# def get_safe_filename(original_filename: str, prefix: str = "") -> str:
+#     """Generate a safe filename with UUID and validated extension."""
+#     if not original_filename:
+#         return f"{prefix}.bin"
+    
+#     ext = original_filename.split('.')[-1].lower()
+#     # Only allow safe alphanumeric extensions
+#     if re.match(r'^[a-zA-Z0-9]+$', ext):
+#         return f"{prefix}.{ext}"
+    
+#     return f"{prefix}.bin"
+
+
 def validate_upload(
     file: UploadFile,
     allowed_types: List[str],
     max_size: Optional[int] = None
-) -> Tuple[str, bytes]:
+) -> Tuple[str, None]:
     """
-    Validate uploaded file for security and type compliance.
-    
-    Args:
-        file: The uploaded file
-        allowed_types: List of allowed file types ('image', 'video', 'document')
-        max_size: Maximum file size in bytes (auto-determined if None)
-        
-    Returns:
-        Tuple of (mime_type, file_content)
-        
-    Raises:
-        HTTPException: If validation fails
+    Validate uploaded file for security and type compliance WITHOUT
+    loading entire file into memory (supports large files).
     """
+
     if not file or not file.filename:
         raise HTTPException(status_code=400, detail="No file provided")
-    
-    # Read file content once
-    content = file.file.read()
-    file.file.seek(0)
-    
+
     # Get file extension and block SVG explicitly
     ext = '.' + file.filename.split('.')[-1].lower()
+
     if ext == '.svg':
-        raise HTTPException(status_code=415, detail="SVG files are not allowed for security reasons")
-    
+        raise HTTPException(
+            status_code=415,
+            detail="SVG files are not allowed for security reasons"
+        )
+
     # Find matching file type configuration
     config = None
     for file_type in allowed_types:
         if file_type in FILE_TYPES and ext in FILE_TYPES[file_type]['extensions']:
             config = FILE_TYPES[file_type]
             break
-    
+
     if not config:
-        allowed_exts = [ext for t in allowed_types for ext in FILE_TYPES.get(t, {}).get('extensions', [])]
-        raise HTTPException(status_code=415, detail=f"File type not allowed. Allowed: {allowed_exts}")
-    
-    # Check file size (skip if no limit set)
-    size_limit = max_size or config.get('max_size')
-    if size_limit and len(content) > size_limit:
+        allowed_exts = [
+            ext for t in allowed_types
+            for ext in FILE_TYPES.get(t, {}).get('extensions', [])
+        ]
         raise HTTPException(
-            status_code=413,
-            detail=f"File too large ({len(content)/1024/1024:.1f}MB > {size_limit/1024/1024:.1f}MB)"
+            status_code=415,
+            detail=f"File type not allowed. Allowed: {allowed_exts}"
         )
-    
-    # Validate file content
-    if not config['validator'](content):
-        raise HTTPException(status_code=415, detail="File appears to be corrupted or invalid")
-    
-    return file.content_type, content
 
+    # Optional file size check WITHOUT reading into RAM
+    if max_size:
+        try:
+            file.file.seek(0, 2)  # move to end
+            size = file.file.tell()
+            file.file.seek(0)
+        except Exception:
+            size = None
 
-def get_safe_filename(original_filename: str, prefix: str = "") -> str:
-    """Generate a safe filename with UUID and validated extension."""
-    if not original_filename:
-        return f"{prefix}.bin"
-    
-    ext = original_filename.split('.')[-1].lower()
-    # Only allow safe alphanumeric extensions
-    if re.match(r'^[a-zA-Z0-9]+$', ext):
-        return f"{prefix}.{ext}"
-    
-    return f"{prefix}.bin"
+        if size and size > max_size:
+            raise HTTPException(
+                status_code=413,
+                detail=f"File too large ({size/1024/1024:.1f}MB)"
+            )
+
+    # ✅ Read only small header for validation (safe for large files)
+    header = file.file.read(8192)  # 8 KB
+    file.file.seek(0)
+
+    # Validate file content using magic bytes
+    if not config['validator'](header):
+        raise HTTPException(
+            status_code=415,
+            detail="File appears to be corrupted or invalid"
+        )
+
+    return file.content_type, None

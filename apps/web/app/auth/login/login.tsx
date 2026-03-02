@@ -194,7 +194,8 @@ const LoginClient = (props: LoginClientProps) => {
         }
         setShowErrorModal(true);
         setIsSubmitting(false);
-      } else {
+      } else 
+        {
         // First signIn already authenticated and set cookies — just redirect
         window.location.href = callbackUrl;
       }

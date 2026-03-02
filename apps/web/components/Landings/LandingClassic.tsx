@@ -22,6 +22,7 @@ interface LandingClassicProps {
 }
 
 function LandingClassic({ courses, collections, orgslug, org_id }: LandingClassicProps) {
+  console.log('Rendering LandingClassic with collections:', collections)
   const { t } = useTranslation()
 
   // Limit to 12 courses (4x3 grid) for the home page
@@ -48,7 +49,7 @@ function LandingClassic({ courses, collections, orgslug, org_id }: LandingClassi
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {collections.map((collection: any) => (
-              <div key={collection.collection_id} className="flex flex-col">
+              <div key={collection?.id} className="flex flex-col">
                 <CollectionThumbnail
                   collection={collection}
                   orgslug={orgslug}

@@ -39,7 +39,7 @@ export function isLightColor(hex: string): boolean {
 export function getMenuColorClasses(primaryColor: string) {
   if (!primaryColor) {
     return {
-      text: 'text-gray-700',
+      text: 'text-#0f172a',
       textMuted: 'text-gray-500',
       hoverBg: 'hover:bg-gray-100',
       iconBtn: 'hover:bg-gray-100 text-gray-600',

@@ -40,6 +40,10 @@ export async function getCollectionById(
     `${getAPIUrl()}collections/collection_${collection_uuid}`,
     RequestBodyWithAuthHeader('GET', null, next, access_token)
   )
+  if (result.status === 409 || result.status === 401) {
+    console.log(result.status)
+  return null
+}
   const res = await errorHandling(result)
   return res
 }

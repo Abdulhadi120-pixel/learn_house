@@ -227,7 +227,6 @@ const LearnHousePlayer: React.FC<LearnHousePlayerProps> = ({
   }
 
   const played = duration > 0 ? currentTime / duration : 0
-
   return (
     <div
       ref={containerRef}
@@ -262,7 +261,10 @@ const LearnHousePlayer: React.FC<LearnHousePlayerProps> = ({
             setIsMuted(video.muted)
           }
         }}
-        onError={(e) => console.error('Video error:', e)}
+        onError={(e) => {
+  const video = e.currentTarget
+  console.error("Video error:", video.error)
+}}
       />
 
       {/* Custom controls - desktop only */}

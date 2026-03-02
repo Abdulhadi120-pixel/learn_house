@@ -59,7 +59,7 @@ export const HeaderProfileBox = ({ primaryColor = '' }: { primaryColor?: string 
 
     // Find the highest priority role for the current organization
     const orgRoles = userRoles.filter((role: any) => role.org.id === org?.id);
-    
+
     if (orgRoles.length === 0) return null;
 
     // Sort by role priority (admin > maintainer > instructor > user)
@@ -127,17 +127,17 @@ export const HeaderProfileBox = ({ primaryColor = '' }: { primaryColor?: string 
 
     // Find roles for the current organization
     const orgRoles = userRoles.filter((role: any) => role.org.id === org?.id);
-    
+
     if (orgRoles.length === 0) return [];
 
     // Filter for custom roles (not system roles)
     const customRoles = orgRoles.filter((role: any) => {
       // Check if it's a system role
-      const isSystemRole = 
+      const isSystemRole =
         role.role.role_uuid?.startsWith('role_global_') ||
         [1, 2, 3, 4].includes(role.role.id) ||
         ['Admin', 'Maintainer', 'Instructor', 'User'].includes(role.role.name);
-      
+
       return !isSystemRole;
     });
 
@@ -171,13 +171,22 @@ export const HeaderProfileBox = ({ primaryColor = '' }: { primaryColor?: string 
           <div className="flex items-center space-x-3">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className={`cursor-pointer flex items-center space-x-3 rounded-lg p-2 transition-colors ${colors.profileHover}`}>
+                <button
+                  className="
+    group cursor-pointer flex items-center space-x-3 rounded-lg p-2 transition-colors
+    bg-white text-black
+    hover:bg-[#059669] hover:text-white
+    data-[state=open]:bg-[#059669] data-[state=open]:text-white
+  "
+                >
                   <UserAvatar border="border-2" rounded="rounded-lg" width={30} shadow={primaryColor ? '' : undefined} />
                   <div className="flex flex-col items-start space-y-0">
                     <div className="flex items-center space-x-2">
-                      <p className={`text-sm font-semibold capitalize ${colors.profileName}`}>{session.data.user.username}</p>
+                      <p className="text-sm font-semibold capitalize text-black group-hover:text-white data-[state=open]:text-white">
+                        {session.data.user.username}
+                      </p>
                       {userRoleInfo && userRoleInfo.name !== 'USER' && (
-                        <Tooltip 
+                        <Tooltip
                           content={userRoleInfo.description}
                           sideOffset={15}
                           side="bottom"
@@ -190,7 +199,7 @@ export const HeaderProfileBox = ({ primaryColor = '' }: { primaryColor?: string 
                       )}
                       {/* Custom roles */}
                       {customRoles.map((customRole, index) => (
-                        <Tooltip 
+                        <Tooltip
                           key={index}
                           content={customRole.description || `${t('roles.custom_role')}: ${customRole.name}`}
                           sideOffset={15}
@@ -203,69 +212,75 @@ export const HeaderProfileBox = ({ primaryColor = '' }: { primaryColor?: string 
                         </Tooltip>
                       ))}
                     </div>
-                    <p className={`text-xs ${colors.profileMuted}`}>{session.data.user.email}</p>
+                    <p className="text-xs text-gray-500 group-hover:text-white data-[state=open]:text-white">
+                      {session.data.user.email}
+                    </p>
                   </div>
-                  <CaretDown size={16} weight="fill" className={colors.profileMuted} />
+                  <CaretDown size={16} weight="fill" className="text-gray-500" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end">
+              <DropdownMenuContent className="w-56 bg-white text-black" align="end">
                 <DropdownMenuLabel>
                   <div className="flex items-center space-x-2">
                     <UserAvatar border="border-2" rounded="rounded-full" width={24} />
                     <div>
-                      <p className="text-sm font-medium">{session.data.user.username}</p>
-                      <p className="text-xs text-gray-500 capitalize">{session.data.user.email}</p>
+                      <p className="text-sm font-semibold capitalize text-black group-hover:text-white data-[state=open]:text-white">
+                        {session.data.user.username}
+                      </p>
+                      <p className="text-xs text-gray-500 group-hover:text-white data-[state=open]:text-white">
+                        {session.data.user.email}
+                      </p>
                     </div>
                   </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="border-gray-200" />
                 {rights?.dashboard?.action_access && (
                   <DropdownMenuItem asChild>
-                    <Link href="/dash" className="flex items-center space-x-2">
-                      <Shield size={16} weight="fill" />
+                    <Link href="/dash" className="flex items-center space-x-2 text-black">
+                      <Shield size={16} weight="fill" className="text-black" />
                       <span>{t('common.dashboard')}</span>
                     </Link>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem asChild>
-                  <Link href="/account/general" className="flex items-center space-x-2">
-                    <User size={16} weight="fill" />
+                  <Link href="/account/general" className="flex items-center space-x-2 text-black">
+                    <User size={16} weight="fill" className="text-black" />
                     <span>{t('user.user_settings')}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/account/my-courses" className="flex items-center space-x-2">
-                    <Package size={16} weight="fill" />
+                  <Link href="/account/my-courses" className="flex items-center space-x-2 text-black">
+                    <Package size={16} weight="fill" className="text-black" />
                     <span>{t('courses.my_courses')}</span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="border-gray-200" />
                 <DropdownMenuSub>
-                  <DropdownMenuSubTrigger className="flex items-center space-x-2">
-                    <Globe size={14} weight="fill" />
+                  <DropdownMenuSubTrigger className="flex items-center space-x-2 text-black">
+                    <Globe size={14} weight="fill" className="text-black" />
                     <span>{t('common.language')}</span>
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent>
                       {AVAILABLE_LANGUAGES.map((language) => (
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           key={language.code}
                           onClick={() => changeLanguage(language.code)}
-                          className="flex items-center justify-between"
+                          className="flex items-center justify-between text-black"
                         >
                           <span>{t(language.translationKey)} ({language.nativeName})</span>
-                          {i18n.language === language.code && <Check size={14} weight="bold" />}
+                          {i18n.language === language.code && <Check size={14} weight="bold" className="text-black" />}
                         </DropdownMenuItem>
                       ))}
                     </DropdownMenuSubContent>
                   </DropdownMenuPortal>
                 </DropdownMenuSub>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="border-gray-200" />
                 <DropdownMenuItem
                   onClick={() => signOut({ callbackUrl: '/' })}
-                  className="flex items-center space-x-2 text-red-600 focus:text-red-600"
+                  className="flex items-center space-x-2 text-black"
                 >
-                  <SignOut size={16} weight="fill" />
+                  <SignOut size={16} weight="fill" className="text-black" />
                   <span>Sign Out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>

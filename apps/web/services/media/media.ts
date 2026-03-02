@@ -37,7 +37,7 @@ export function getVideoBlockStreamUrl(
   blockUUID: string,
   filename: string
 ) {
-  return `${getApiUrl()}api/v1/stream/block/${orgUUID}/${courseUUID}/${activityUUID}/${blockUUID}/${filename}`
+  return `${getApiUrl()}/api/v1/stream/block/${orgUUID}/${courseUUID}/${activityUUID}/${blockUUID}/${filename}`
 }
 
 /**
@@ -51,7 +51,7 @@ export function getAudioBlockStreamUrl(
   blockUUID: string,
   filename: string
 ) {
-  return `${getApiUrl()}api/v1/stream/block/audio/${orgUUID}/${courseUUID}/${activityUUID}/${blockUUID}/${filename}`
+  return `${getApiUrl()}/api/v1/stream/block/audio/${orgUUID}/${courseUUID}/${activityUUID}/${blockUUID}/${filename}`
 }
 
 export function getCourseThumbnailMediaDirectory(
@@ -261,5 +261,5 @@ export function getPodcastAudioStreamUrl(
   episodeUUID: string,
   filename: string
 ) {
-  return `${getApiUrl()}api/v1/stream/audio/${orgUUID}/${podcastUUID}/${episodeUUID}/${filename}`
+  return `${getApiUrl()}/api/v1/stream/audio/${orgUUID}/${podcastUUID}/${episodeUUID}/${filename}`
 }
