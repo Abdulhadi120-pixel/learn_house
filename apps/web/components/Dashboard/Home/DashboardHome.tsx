@@ -71,7 +71,7 @@ export default function DashboardHome() {
             <div className="flex items-center gap-2">
               <Link
                 href="/dash/courses?new=true"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-lg transition-colors bg-[#059669] text-white hover:bg-white hover:text-black"
               >
                 <PlusCircle size={14} weight="bold" />
                 Create Course
