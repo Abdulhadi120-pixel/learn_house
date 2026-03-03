@@ -79,7 +79,7 @@ function CourseShare({ courseName, courseUrl }: CourseShareProps) {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white nice-shadow text-neutral-600 hover:text-neutral-800 transition-colors text-sm font-medium"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-lg nice-shadow bg-[#059669] text-white hover:bg-white hover:text-black transition-colors text-sm font-medium"
       >
         <Share2 size={14} />
         <span>{t('courses.share_course')}</span>
