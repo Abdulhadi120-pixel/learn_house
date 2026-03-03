@@ -1058,7 +1058,7 @@ export function MarkStatus(props: {
         <div className="flex items-center space-x-2">
           <div className="relative">
             <div
-              className={`${isLoading ? 'opacity-90' : ''} bg-gray-800 rounded-md px-4 nice-shadow flex flex-col p-2.5 text-white hover:cursor-pointer transition-all duration-200 ${isLoading ? 'cursor-not-allowed' : 'hover:bg-gray-700'}`}
+              className={`${isLoading ? 'opacity-90' : ''} rounded-md px-4 nice-shadow flex flex-col p-2.5 bg-[#059669] text-white hover:cursor-pointer transition-all duration-200 ${isLoading ? 'cursor-not-allowed' : 'hover:bg-white hover:text-black'}`}
               onClick={!isLoading ? markActivityAsCompleteFront : undefined}
             >
               <span className="text-[10px] font-bold mb-1 uppercase">{t('common.status')}</span>
@@ -1154,9 +1154,9 @@ function NextActivityButton({ course, currentActivityId, orgslug }: { course: an
   return (
     <div
       onClick={navigateToActivity}
-      className="bg-gray-200 rounded-md px-3 sm:px-4 shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)] flex flex-col p-2 sm:p-2.5 text-gray-600 hover:cursor-pointer transition delay-150 duration-300 ease-in-out hover:bg-gray-200"
+      className="rounded-md px-3 sm:px-4 shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)] flex flex-col p-2 sm:p-2.5 bg-[#059669] text-white hover:cursor-pointer transition delay-150 duration-300 ease-in-out hover:bg-white hover:text-black"
     >
-      <span className="text-[10px] font-bold text-gray-500 mb-1 uppercase">{t('common.next')}</span>
+      <span className="text-[10px] font-bold mb-1 uppercase">{t('common.next')}</span>
       <div className="flex items-center space-x-1">
         <span className="text-xs sm:text-sm font-semibold truncate max-w-[120px] sm:max-w-[200px]">{nextActivity.name}</span>
         <ChevronRight size={17} className="shrink-0" />
@@ -1207,9 +1207,9 @@ function PreviousActivityButton({ course, currentActivityId, orgslug }: { course
   return (
     <div
       onClick={navigateToActivity}
-      className="bg-white rounded-md px-3 sm:px-4 nice-shadow flex flex-col p-2 sm:p-2.5 text-gray-600 hover:cursor-pointer transition delay-150 duration-300 ease-in-out"
+      className="rounded-md px-3 sm:px-4 nice-shadow flex flex-col p-2 sm:p-2.5 bg-[#059669] text-white hover:cursor-pointer transition delay-150 duration-300 ease-in-out hover:bg-white hover:text-black"
     >
-      <span className="text-[10px] font-bold text-gray-500 mb-1 uppercase">{t('common.previous')}</span>
+      <span className="text-[10px] font-bold mb-1 uppercase">{t('common.previous')}</span>
       <div className="flex items-center space-x-1">
         <ChevronLeft size={17} className="shrink-0" />
         <span className="text-xs sm:text-sm font-semibold truncate max-w-[120px] sm:max-w-[200px]">{previousActivity.name}</span>

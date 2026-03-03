@@ -74,7 +74,7 @@ export default function ActivityChapterDropdown(props: ActivityChapterDropdownPr
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={toggleDropdown}
-        className="bg-white rounded-full px-5 nice-shadow flex items-center space-x-2 p-2.5 text-gray-700 hover:bg-gray-50 transition delay-150 duration-300 ease-in-out"
+        className="rounded-full px-5 nice-shadow flex items-center space-x-2 p-2.5 bg-[#059669] text-white hover:bg-white hover:text-black transition delay-150 duration-300 ease-in-out"
         aria-label="View all activities"
         title="View all activities"
       >
