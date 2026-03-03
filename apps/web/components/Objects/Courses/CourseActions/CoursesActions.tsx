@@ -509,8 +509,8 @@ function CoursesActions({ courseuuid, orgslug, course, trailData }: CourseAction
           aria-label={isStarted ? t('courses.leave_course') : t('courses.start_course')}
           className={`w-full py-3 rounded-lg nice-shadow font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer ${
             isStarted
-              ? 'bg-red-500 text-white hover:bg-red-600 disabled:bg-red-400'
-              : 'bg-neutral-900 text-white hover:bg-neutral-800 disabled:bg-neutral-700'
+                    ? 'bg-red-500 text-white hover:bg-red-600 disabled:bg-red-400'
+                    : 'bg-[#059669] text-white hover:bg-white hover:text-black disabled:bg-[#059669]/70'
           }`}
         >
           {isActionLoading ? (
