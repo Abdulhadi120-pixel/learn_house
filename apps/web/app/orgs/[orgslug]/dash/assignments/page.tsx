@@ -73,7 +73,7 @@ function AssignmentsHome() {
                       query: { subpage: 'editor' }
                     }}
                     prefetch
-                    className='bg-black font-semibold text-sm text-zinc-100 rounded-md flex space-x-1.5 nice-shadow items-center px-3 py-1'>
+                    className='font-semibold text-sm rounded-md flex space-x-1.5 nice-shadow items-center px-3 py-1 bg-[#059669] text-white hover:bg-white hover:text-black transition-colors'>
                     <GalleryVerticalEnd size={15} />
                     <p>{t('dashboard.assignments.home.course_editor')}</p>
                   </Link>
